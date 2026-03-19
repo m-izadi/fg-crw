@@ -1,0 +1,42 @@
+---
+- name: Proxy Setup
+  hosts: all
+  user: ansible
+  become: yes
+  # gather_facts: false
+
+  # vars:
+  #   install_package_1: "acl"
+  #   install_package_2: "net-tools"
+  #   install_package_3: "squid"
+  #   install_package_4: "traceroute"
+  #   install_package_5: "wireguard"
+  #   install_package_6: "zabbix-agent"
+
+  vars:
+    install_packages:
+      - acl
+      - net-tools
+      # - squid
+      - traceroute
+      - wireguard
+      - zabbix-agent
+    backup_files:
+      - /etc/hosts
+      - /etc/hostname
+      - /etc/resolv.conf
+      - /etc/ssh/sshd_config
+      # - /etc/squid/squid.conf
+      - /etc/wireguard/*
+      - /etc/netplan/*
+      - /home/ansible/.ssh/authorized_keys
+    backup_base_dir: /root/backup_configs
+    max_backups: 10
+
+  # vars_files:
+  #   - "inventory/host_vars/fr-p1.yml"
+
+  roles:
+    - installation
+    - os-config
+    # - squid-config

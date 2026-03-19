@@ -1,0 +1,69 @@
+---
+#python3 -c "import crypt; print(crypt.crypt('izadi@123', crypt.mksalt(crypt.METHOD_SHA512)))"
+- name: Add izadi User
+  ansible.builtin.user:
+    name: izadi
+    shell: /bin/bash
+    groups: sudo
+    append: yes
+    password_lock: false
+    password: "$6$1J9hO/oiwctzZ1LC$gkf6gPry9qf1vLTn.6dMceV9S2n4jpMJqO5U3OEAgDYFpr5wkMEw8CWktnHjdcEwgfj.KeuB4DamVhHz/5X7w."  #izadi@123
+    update_password: always
+    state: present
+
+#python3 -c "import crypt; print(crypt.crypt('@nsib', crypt.mksalt(crypt.METHOD_SHA512)))"
+- name: Add ansible User
+  ansible.builtin.user:
+    name: ansible
+    password: "$6$q2d27tNrq1NVGLpG$CkdYX6XU17j/MTwmczWZE3ZKm3TZRUzyXpauf8ikBWWMKLjNV6fGv67PaYSv.tib.NHstpfj0zvJfgMRzCXYh."    # @nsib
+    shell: /bin/bash
+    groups: sudo
+    append: yes
+    password_lock: false
+    update_password: always
+    # update_password: on_create
+    state: present
+
+# python3 -c "import crypt; print(crypt.crypt('Dev@123', crypt.mksalt(crypt.METHOD_SHA512)))"
+- name: Add dev User
+  ansible.builtin.user:
+    name: dev
+    password: $6$lDZeGqaFB7og5JSC$2BxUp2BwGxpwqQO6uohf6Hn664q6.XiBnV9kdFnuEIyTcgDK1075Ek2mMNcTJFeC75efyY/T.TTYwBUX/xkq/0 Dev@123
+    password_lock: false
+    shell: /bin/bash
+    groups: sudo
+    append: yes
+    update_password: always
+    state: present
+
+
+
+
+
+
+
+
+# #python3 -c "import crypt; print(crypt.crypt('kml@123', crypt.mksalt(crypt.METHOD_SHA512)))"
+# - name: Add kml User
+#   ansible.builtin.user:
+#     name: kml
+#     password: "$6$uu8mmXlH2c0GuTGS$latfmqOuQasDxONZX1CYk0JoXYfipOGkOfI9MZdClAfcpi6R9e3L0fR2Rh0twt27Cxl2p.zOPkKUoHeL6eKsA0" #kml@123
+#     password_lock: false
+#     shell: /bin/bash
+#     groups: sudo
+#     append: yes
+#     update_password: always
+#     state: present
+
+# #python3 -c "import crypt; print(crypt.crypt('backdoor', crypt.mksalt(crypt.METHOD_SHA512)))"
+# - name: Add backdoor User
+#   ansible.builtin.user:
+#     name: backdoor
+#     password: "$6$RwptUFkusVo5Mdnf$vsBUw1DE6dD4ubevVg4OsSq/TJMDer4MHES2gQH4jA1.UeSmOhtNQCnE81E0sijLNndWb42gVXOXDIMOIwLI3/"    #backdoor
+#     shell: /bin/bash
+#     groups: sudo
+#     append: yes
+#     password_lock: false
+#     update_password: always
+#     # update_password: on_create
+#     state: present

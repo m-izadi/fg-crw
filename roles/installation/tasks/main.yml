@@ -1,0 +1,65 @@
+---
+- name:  Zabbix Repo
+  get_url:
+    url: https://repo.zabbix.com/zabbix/7.2/release/ubuntu/pool/main/z/zabbix-release/zabbix-release_latest_7.2+ubuntu24.04_all.deb
+    dest: /tmp/zabbix-release.deb
+    mode: '0644'
+
+- name: Install Zabbix
+  apt:
+    deb: /tmp/zabbix-release.deb
+    state: present
+  
+# - name: Update repositories cache and install "squid" package
+#   ansible.builtin.apt:
+#     pkg:
+#     - "{{ install_package_1 }}"
+#     - "{{ install_package_2 }}"
+#     - "{{ install_package_3 }}"
+#     - "{{ install_package_4 }}"
+#     - "{{ install_package_5 }}"
+#     - "{{ install_package_6 }}"
+#     update_cache: yes
+#   notify: Handler PLZ Check SQUID
+
+
+# - name: Update repositories cache and install required packages
+#   ansible.builtin.apt:
+#     pkg: "{{ install_packages }}"
+#     update_cache: yes
+#   notify: Handler PLZ Check SQUID
+
+- name: Update and upgrade all packages
+  ansible.builtin.apt:
+    update_cache: yes
+    upgrade: dist
+
+# - name: Reboot if needed
+#   ansible.builtin.reboot:
+#     msg: "Rebooting after upgrade"
+#     pre_reboot_delay: 5
+#     post_reboot_delay: 10
+#     reboot_timeout: 600
+
+# - name: Update package cache and upgrade packages
+#   ansible.builtin.apt:
+#     update_cache: yes
+#     upgrade: yes
+
+- name: Check if reboot is required
+  ansible.builtin.stat:
+    path: /var/run/reboot-required
+  register: reboot_required_file
+
+- name: Reboot if required
+  ansible.builtin.reboot:
+    msg: "Rebooting after upgrade"
+    pre_reboot_delay: 5
+    post_reboot_delay: 10
+    reboot_timeout: 600
+  when: reboot_required_file.stat.exists
+  notify: Hey Handler! PLZ Bring UP the Wireguard Tunnel.
+
+
+# - name: Bring up WireGuard interface wg1
+#   ansible.builtin.shell: wg-quick up wg1 >/dev/null 2>&1 || true

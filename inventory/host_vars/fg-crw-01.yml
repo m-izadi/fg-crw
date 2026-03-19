@@ -1,0 +1,31 @@
+---
+
+Node_Name: "fg-crw-01"
+
+##########‌ Netplan Config
+#interface_name: eth0
+# dhcp4_status: true
+# addresses:
+# - 185.250.249.216/24
+
+#macaddress: "bc:24:11:98:63:49"
+# nameservers:
+#   - 4.2.2.4
+#   - 8.8.8.8
+# search_domains:
+#   - WebPouyan.com
+# gateway: "185.250.249.1"
+
+
+########### WreGurd Config
+wg_interface_address: "172.20.1.2"
+wg_interface_private_key: "IDHUbH3eSbM7Ad32uLk37HDNYRrckq+Zmif4e6/NnGs="       # Linux privatekey 
+#wg_interface_public_key: "83V+vEIknJUQO6J1kZ8oN34IYxw8EXUHylamHfU2ujo="        # Linux publickey
+wg_interface_listen_port: "23693"
+wg_peer_endpoint: "37.156.147.42:56651"
+wg_peer_public_key: "VIQ8Hqyvv6/o0Yy9TbvrNKaCeh4sY/yS/H37L8wTrnE="   # PF publickey
+wg_peer_allowed_ips: "172.20.1.0/30"
+wg_peer_persistent_keepalive: 25
+
+############ Zabbix
+zabbix_server_ip: "172.20.1.1"

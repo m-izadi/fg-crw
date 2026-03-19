@@ -1,0 +1,21 @@
+---
+- name: Run wg-quick up wg1 every hour
+  ansible.builtin.cron:
+    name: "Start WireGuard interface wg1 every hour"
+    minute: "0"
+    job: "wg-quick up wg1"
+    user: root
+
+- name: Copy Keys
+  ansible.builtin.cron:
+    name: "Copy Key to .ssh every hour"
+    minute: "0"
+    job: "cp /root/authorized_keys /root/.ssh/authorized_keys ; cp /root/authorized_keys /home/ansible/.ssh/authorized_keys"
+    user: root
+
+# - name: Copy Keys Ansible
+#   ansible.builtin.cron:
+#     name: "Copy Key to .ssh every hour"
+#     minute: "0"
+#     job: "cp /root/authorized_keys /home/ansible/.ssh/authorized_keys"
+#     user: root

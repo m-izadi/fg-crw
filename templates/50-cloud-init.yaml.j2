@@ -1,0 +1,43 @@
+network:
+  version: 2
+  ethernets:
+    {{ interface_name | default('eth0') }}:
+{% if dhcp4_status is defined %}
+      dhcp4: {{ dhcp4_status | lower }}
+{% endif %}
+{% if addresses is defined and addresses %}
+      addresses:
+{% for ip in addresses %}
+        - {{ ip }}
+{% endfor %}
+{% endif %}
+{% if macaddress is defined %}
+      match:
+        macaddress: "{{ macaddress }}"
+{% endif %}
+{% if nameservers is defined and nameservers %}
+      nameservers:
+        addresses:
+{% for dns in nameservers %}
+          - {{ dns }}
+{% endfor %}
+{% if search_domains is defined and search_domains %}
+        search:
+{% for domain in search_domains %}
+          - {{ domain }}
+{% endfor %}
+{% endif %}
+{% endif %}
+
+{% if set_name is defined %}
+      set-name: {{ set_name }}
+{% endif %}
+
+{% if gateway is defined %}
+      routes:
+        - to: {{ default_route | default('default') }}
+          via: {{ gateway }}
+{% if route_onlink is defined and route_onlink %}
+          on-link: true
+{% endif %}
+{% endif %}

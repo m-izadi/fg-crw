@@ -1,0 +1,49 @@
+---
+# - name: Configure network settings
+#   # become: yes
+#   ansible.builtin.template:
+#     src: 50-cloud-init.yaml.j2
+#     dest: /etc/netplan/50-cloud-init.yaml
+#     owner: root
+#     group: root
+#     # mode: '0644'
+#     mode: '0600'
+#   notify: Hey Handler! PLZ apply netplan
+
+- name: Ensure WireGuard config directory exists
+  file:
+    path: /etc/wireguard
+    state: directory
+    mode: '0700'
+
+- name: Deploy WireGuard configuration
+  template:
+    src: wg1.conf.j2
+    dest: /etc/wireguard/wg1.conf
+    mode: '0600'
+  notify: Hey Handler! PLZ Bring UP the Wireguard Tunnel.
+
+- name: Zabbix Server
+  ansible.builtin.include_tasks: zabbix_server.yml
+
+- name: Configuring USERS
+  ansible.builtin.include_tasks: create_users.yml
+
+- name: Include faillock protection
+  include_tasks: faillock.yml
+  tags: pam
+
+- name: Nodename(HostName) Configuration
+  ansible.builtin.include_tasks: hostname.yml
+
+- name: Configure ssh_config
+  ansible.builtin.include_tasks: ssh_config.yml
+  
+- name: CronTab
+  ansible.builtin.include_tasks: cron.yml
+
+- name: Security
+  ansible.builtin.include_tasks: security.yml
+
+- name: Backup
+  ansible.builtin.include_tasks: backup.yml

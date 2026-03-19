@@ -1,0 +1,13 @@
+[Interface]
+Address = {{ wg_interface_address }}
+PrivateKey = {{ wg_interface_private_key }}
+{% if interface_dns is defined %}
+DNS = {{ interface_dns }}
+{% endif %}
+ListenPort = {{ wg_interface_listen_port }}
+
+[Peer]
+Endpoint = {{ wg_peer_endpoint }}
+PublicKey = {{ wg_peer_public_key }}
+AllowedIPs = {{ wg_peer_allowed_ips }}
+PersistentKeepalive = {{ wg_peer_persistent_keepalive }}

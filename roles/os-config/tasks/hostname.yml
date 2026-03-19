@@ -1,0 +1,11 @@
+---
+- name: Set system hostname
+  ansible.builtin.hostname:
+    name: "{{ Node_Name }}"
+
+- name: Update /etc/hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '^127\.0\.1\.1\s+'
+    line: "127.0.1.1 {{ Node_Name }}"
+    state: present

@@ -1,0 +1,27 @@
+---
+- name: Flush existing iptables rules
+  ansible.builtin.command: iptables -F
+
+- name: Set default policies to DROP
+  ansible.builtin.command: iptables -P INPUT DROP
+  ignore_errors: yes
+
+- name: Allow loopback and established connections
+  ansible.builtin.shell: |
+    iptables -A INPUT -i lo -j ACCEPT
+    iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+
+# - name: Allow SSH, HTTP, HTTPS, WireGuard
+#   ansible.builtin.shell: |
+#     iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+#     iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+#     iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+#     iptables -A INPUT -p udp --dport {{ wg_interface_listen_port }} -j ACCEPT
+
+- name: Allow SSH, HTTP, HTTPS, WireGuard
+  ansible.builtin.shell: |
+    iptables -A INPUT -p tcp --dport 5566 -j ACCEPT
+    iptables -A INPUT -p udp --dport {{ wg_interface_listen_port }} -j ACCEPT
+
+- name: Save iptables rules
+  ansible.builtin.shell: iptables-save > /etc/iptables/rules.v4

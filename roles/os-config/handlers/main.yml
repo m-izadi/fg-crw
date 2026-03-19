@@ -1,0 +1,41 @@
+---
+- name: apply netplan
+  # become: yes
+  ansible.builtin.command: netplan apply
+  listen: Hey Handler! PLZ apply netplan
+
+- name: Restart  WireGuard Service
+  systemd:
+    name: wg-quick@wg1
+    state: restarted
+    enabled: yes
+  listen: Hey Handler! PLZ Bring UP the Wireguard Tunnel.
+
+# - name: Raising the Wireguard Tunnel
+#   ansible.builtin.shell: wg-quick up wg1
+#   args:
+#     executable: /bin/bash
+#   listen: Hey Handler! PLZ Bring UP the Wireguard Tunnel.
+
+- name: Restart zabbix-agent
+  systemd:
+    name: zabbix-agent
+    state: restarted
+  listen: Hey Handler! PLZ Restart zabbix-agent Service
+
+- name: Restart SSH service
+  ansible.builtin.service:
+    name: ssh
+    state: restarted
+  listen: Hey Handler! PLZ Restart sshd Service
+
+- name: Reset faillock for all users
+  # become: yes
+  shell: |
+    for user in $(cut -d: -f1 /etc/passwd); do
+      faillock --user $user --reset || true
+    done
+  # args:
+  #   warn: false
+  tags: pam
+  listen: Hey Handler! PLZ Reset faillock users

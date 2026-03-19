@@ -1,0 +1,70 @@
+---
+- name: Get failed login attempts for all users
+  # become: yes
+  shell: |
+    for user in $(cut -d: -f1 /etc/passwd); do
+      faillock --user $user | grep 'fail' | sed "s/^/$user: /"
+    done
+  register: faillock_output
+  changed_when: false
+  tags: pam
+  notify: Hey Handler! PLZ Reset faillock users
+
+- name: Show failed login summary
+  debug:
+    var: faillock_output.stdout_lines
+  tags: pam
+
+# - name: Increase allowed login failures in PAM
+#   # become: yes
+#   lineinfile:
+#     path: /etc/pam.d/common-auth
+#     regexp: '^auth\s+required\s+pam_tally2\.so.*'
+#     line: 'auth required pam_tally2.so deny=10 unlock_time=300 onerr=fail audit'
+#     state: present
+#     backrefs: yes
+#   notify: Restart ssh
+
+# - name: Ensure ansible user is not locked by faillock
+#   # become: yes
+#   shell: "faillock --user {{ ansible_user }} --reset"
+#   args:
+#     warn: false
+#   when: ansible_user is defined
+#   changed_when: false
+
+# - name: Backup common-auth file
+#   # become: yes
+#   copy:
+#     src: /etc/pam.d/common-auth
+#     dest: /etc/pam.d/common-auth.bak
+#     remote_src: yes
+#   tags: pam
+
+# - name: Remove pam_tally2 or pam_faillock limits from PAM
+#   # become: yes
+#   lineinfile:
+#     path: /etc/pam.d/common-auth
+#     regexp: '^auth\s+required\s+pam_(tally2|faillock)\.so.*'
+#     state: absent
+#   notify: Restart ssh
+#   tags: pam
+
+# - name: Ensure pam_faillock config is present
+#   # become: yes
+#   blockinfile:
+#     path: /etc/pam.d/common-auth
+#     block: |
+#       auth required pam_faillock.so preauth silent deny=100 unlock_time=60
+# #      auth [default=die] pam_faillock.so authfail
+#     marker: "# {mark} ANSIBLE pam_faillock"
+#   tags: pam
+
+# - name: Set deny limit to 100
+#   # become: yes
+#   lineinfile:
+#     path: /etc/pam.d/common-auth
+#     regexp: '^auth\\s+required\\s+pam_faillock\\.so.*deny='
+#     line: 'auth required pam_faillock.so preauth silent deny=100 unlock_time=60'
+#     backrefs: yes
+#   tags: pam

@@ -1,0 +1,18 @@
+[sudo] password for ansible: 
+# This file is generated from information provided by the datasource.  Changes
+# to it will not persist across an instance reboot.  To disable cloud-init's
+# network configuration capabilities, write a file
+# /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg with the following:
+# network: {config: disabled}
+network:
+    version: 2
+    ethernets:
+        eth0:
+            dhcp4: true
+            match:
+                macaddress: 84:50:de:a1:a7:16
+            set-name: eth0
+          
+
+# IP: 185.250.249.216/24
+# GW: 185.250.249.1

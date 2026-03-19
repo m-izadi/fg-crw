@@ -1,0 +1,102 @@
+---
+- name: Add SSH keys for multiple users
+  ansible.builtin.authorized_key:
+    user: "{{ item.0 }}"
+    key: "{{ item.1 }}"
+    state: present
+  loop: "{{ users | product(ssh_public_keys) | list }}"
+  vars:
+    users:
+      - root
+      - izadi
+      - ansible
+      # - mehran
+
+# - name: Add public keys for root
+#   ansible.builtin.authorized_key:
+#     user: root
+#     state: present
+#     key: "{{ item }}"
+#   loop: "{{ ssh_public_keys }}"
+
+# - name: Add public keys for izadi
+#   ansible.builtin.authorized_key:
+#     user: izadi
+#     state: present
+#     key: "{{ item }}"
+#   loop: "{{ ssh_public_keys }}"
+
+
+################# Backup - Move To task backup #################
+# - name: Backup authorized_keys file
+#   ansible.builtin.copy:
+#     src: /root/.ssh/authorized_keys
+#     dest: /root/authorized_keys
+#     remote_src: yes
+#     owner: root
+#     group: root
+#     mode: '0600'
+
+- name: Remove all files inside sshd_config.d but keep folder
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop: "{{ lookup('ansible.builtin.fileglob','/etc/ssh/sshd_config.d/*') }}"
+
+- name: Remove only .conf files from sshd_config.d
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop: "{{ lookup('ansible.builtin.fileglob', '/etc/ssh/sshd_config.d/*.conf', wantlist=True) }}"
+  ignore_errors: yes
+
+- name: Change SSH port
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?Port '
+    line: "Port {{ ssh_port }}"
+    state: present
+    backup: yes
+  notify: Hey Handler! PLZ Restart sshd Service
+
+
+- name: Harden SSH configuration
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PermitRootLogin'
+    line: 'PermitRootLogin no'
+    state: present
+  notify: Hey Handler! PLZ Restart sshd Service
+
+- name: Ensure PasswordAuthentication is set to no in all relevant sshd_config files
+  ansible.builtin.lineinfile:
+    path: "{{ item }}"
+    regexp: '^#?PasswordAuthentication\s+.*'
+    line: 'PasswordAuthentication no'
+    state: present
+    backrefs: yes
+  loop:
+    - /etc/ssh/sshd_config
+    # - /etc/ssh/sshd_config.d/50-cloud-init.conf
+    # - /etc/ssh/sshd_config.d/60-cloudimg-settings.conf
+  notify: Hey Handler! PLZ Restart sshd Service
+
+
+# - name: Harden SSH configuration
+#   ansible.builtin.blockinfile:
+#     path: /etc/ssh/sshd_config
+#     # marker: "# {mark} ANSIBLE HARDENED SSH CONFIG"
+#     block: |
+#       Port {{ ssh_port }}
+#       PermitRootLogin prohibit-password
+#       PasswordAuthentication no
+#   # backup: yes
+#   notify: Hey Handler! PLZ Restart sshd Service
+
+############################################## With Template
+# - name: Deploy hardened sshd_config
+#   ansible.builtin.template:
+#     src: sshd_config.j2
+#     dest: /etc/ssh/sshd_config
+#     backup: yes
+#   notify: Restart sshd
