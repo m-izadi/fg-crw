@@ -16,6 +16,8 @@ Node_Name: "fg-crw-01"
 #   - WebPouyan.com
 # gateway: "185.250.249.1"
 
+########### SSH Config
+ssh_port: 5566
 
 ########### WreGurd Config
 wg_interface_address: "172.20.1.2"
