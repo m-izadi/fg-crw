@@ -1,27 +1,53 @@
 ---
+- name: Ensure iptables-persistent directory exists
+  ansible.builtin.file:
+    path: /etc/iptables
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Preseed iptables-persistent autosave
+  ansible.builtin.debconf:
+    name: iptables-persistent
+    question: "{{ item.question }}"
+    value: "{{ item.value }}"
+    vtype: boolean
+  loop:
+    - question: iptables-persistent/autosave_v4
+      value: "true"
+    - question: iptables-persistent/autosave_v6
+      value: "true"
+
+- name: Install iptables-persistent
+  ansible.builtin.apt:
+    name: iptables-persistent
+    state: present
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+
 - name: Flush existing iptables rules
   ansible.builtin.command: iptables -F
 
-- name: Set default policies to DROP
+- name: Set default INPUT policy to DROP
   ansible.builtin.command: iptables -P INPUT DROP
-  ignore_errors: yes
 
-- name: Allow loopback and established connections
-  ansible.builtin.shell: |
-    iptables -A INPUT -i lo -j ACCEPT
-    iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+- name: Allow loopback traffic
+  ansible.builtin.command: iptables -A INPUT -i lo -j ACCEPT
 
-# - name: Allow SSH, HTTP, HTTPS, WireGuard
-#   ansible.builtin.shell: |
-#     iptables -A INPUT -p tcp --dport 22 -j ACCEPT
-#     iptables -A INPUT -p tcp --dport 80 -j ACCEPT
-#     iptables -A INPUT -p tcp --dport 443 -j ACCEPT
-#     iptables -A INPUT -p udp --dport {{ wg_interface_listen_port }} -j ACCEPT
+- name: Allow established and related connections
+  ansible.builtin.command: iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 
-- name: Allow SSH, HTTP, HTTPS, WireGuard
-  ansible.builtin.shell: |
-    iptables -A INPUT -p tcp --dport 5566 -j ACCEPT
-    iptables -A INPUT -p udp --dport {{ wg_interface_listen_port }} -j ACCEPT
+- name: Allow SSH on configured port
+  ansible.builtin.command: iptables -A INPUT -p tcp --dport {{ ssh_port }} -j ACCEPT
+
+- name: Allow WireGuard
+  ansible.builtin.command: iptables -A INPUT -p udp --dport {{ wg_interface_listen_port }} -j ACCEPT
+
+- name: Allow Zabbix agent from monitoring server
+  ansible.builtin.command: iptables -A INPUT -p tcp -s {{ zabbix_server_ip }} --dport 10050 -j ACCEPT
+  when: zabbix_server_ip is defined
 
 - name: Save iptables rules
   ansible.builtin.shell: iptables-save > /etc/iptables/rules.v4
+  changed_when: true
