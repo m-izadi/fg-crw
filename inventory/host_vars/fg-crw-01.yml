@@ -31,3 +31,10 @@ wg_peer_persistent_keepalive: 25
 
 ############ Zabbix
 zabbix_server_ip: "172.20.1.1"
+
+############ Application (Docker)
+# Ports bind only on WireGuard IP — not reachable from the public interface.
+# app_bind_address: "172.20.1.2"
+app_bind_address: "{{ wg_interface_address }}"
+app_deploy_dir: /srv/fg-crw
+app_mongo_uri: mongodb://host.docker.internal:27017
