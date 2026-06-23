@@ -45,5 +45,9 @@
 - name: Security
   ansible.builtin.include_tasks: security.yml
 
+- name: Firewall
+  ansible.builtin.include_tasks: iptables.yml
+  tags: [firewall]
+
 - name: Backup
   ansible.builtin.include_tasks: backup.yml
