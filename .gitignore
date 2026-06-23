@@ -1,8 +1,4 @@
-Docs.md
-
-
-
-
-
-
-
+.env
+__pycache__/
+*.pyc
+.venv/
