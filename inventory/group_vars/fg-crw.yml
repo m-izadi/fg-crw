@@ -1,0 +1,5 @@
+---
+# Shared defaults for fg-crw application hosts.
+# app_deploy_dir: /opt/fg-crw
+# app_bind_address: "{{ wg_interface_address }}"
+# app_mongo_uri: mongodb://host.docker.internal:27017
