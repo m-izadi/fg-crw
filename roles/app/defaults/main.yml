@@ -1,5 +1,5 @@
----
-app_deploy_dir: /srv/docker-compose/fg-ins-crw
-app_bind_address: "{{ wg_interface_address | default('127.0.0.1') }}"
-app_mongo_uri: mongodb://host.docker.internal:27017
-app_compose_pull: false
+# ---
+# app_deploy_dir: /srv/docker-compose/fg-ins-crw
+# app_bind_address: "{{ wg_interface_address | default('127.0.0.1') }}"
+# app_mongo_uri: mongodb://host.docker.internal:27017
+# app_compose_pull: false
