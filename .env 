@@ -1,0 +1,6 @@
+# Bind application ports to a private address only (never use 0.0.0.0 on a public host).
+# WireGuard interface IP on fg-crw-01:
+BIND_ADDRESS=172.20.1.2
+
+# MongoDB runs on the host; containers reach it via host-gateway.
+MONGO_URI=mongodb://host.docker.internal:27017
