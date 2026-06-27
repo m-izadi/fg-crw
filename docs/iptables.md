@@ -46,7 +46,65 @@ iptables-restore /etc/iptables/rules.v4
 
 **پیش‌فرض INPUT:** `DROP` — یعنی هر چیز دیگری رد می‌شود.
 
-سرویس‌های Docker (API روی 8000، session-manager روی 8001) روی IP WireGuard (`172.20.1.2`) bind شده‌اند و از اینترنت عمومی در دسترس نیستند.
+**مهم:** فقط chain `INPUT` (ورودی به خود سرور) محدود می‌شود. chainهای `FORWARD` و `OUTPUT` و قوانین Docker **دست‌نخورده** می‌مانند تا:
+- سرور به اینترنت دسترسی داشته باشد (`OUTPUT ACCEPT`)
+- کانتینرها بتوانند `pip install` و DNS انجام دهند (`FORWARD` توسط Docker مدیریت می‌شود)
+
+---
+
+## چرا iptables اینترنت/Docker را قطع می‌کرد؟
+
+نسخه قبلی از `iptables-restore` با `FORWARD DROP` استفاده می‌کرد. این دو مشکل ایجاد می‌کرد:
+
+1. **`iptables-restore` کل جدول filter را پاک می‌کند** — شامل chainهای `DOCKER`, `DOCKER-USER`, `DOCKER-FORWARD` که Docker خودش می‌سازد.
+2. **`FORWARD DROP`** — ترافیک خروجی کانتینرها (build، pip، DNS به `pypi.org`) از chain FORWARD رد می‌شود و drop می‌خورد.
+
+علامت در Docker build:
+```text
+Temporary failure in name resolution
+Failed to establish a new connection ... /simple/python-dotenv/
+```
+
+### راه‌حل فعلی
+
+Ansible **فقط chain INPUT** را rebuild می‌کند و FORWARD/OUTPUT را دست نمی‌زند:
+
+```bash
+iptables -F INPUT          # فقط INPUT
+# ... قوانین ACCEPT ...
+iptables -P INPUT DROP     # فقط policy ورودی
+iptables-save > /etc/iptables/rules.v4   # ذخیره کل وضعیت (شامل قوانین Docker)
+```
+
+**هرگز** این کار را نکنید (Docker و اینترنت کانتینر را می‌شکند):
+```bash
+iptables-restore /etc/iptables/rules.v4   # ❌ اگر فایل قوانین Docker نداشته باشد
+```
+
+### بازیابی سریع اگر Docker build / pip الان fail می‌شود
+
+روی سرور (SSH یا Console):
+
+```bash
+# 1. FORWARD را باز کنید (اگر DROP شده)
+sudo iptables -P FORWARD ACCEPT
+
+# 2. Docker قوانین iptables خودش را دوباره بسازد
+sudo systemctl restart docker
+
+# 3. تست DNS از داخل یک کانتینر
+sudo docker run --rm alpine ping -c 2 pypi.org
+
+# 4. دوباره build
+cd /srv/docker-compose/fg-ins-crw   # یا app_deploy_dir شما
+sudo docker compose build --no-cache session-manager
+```
+
+سپس Ansible را با نسخه جدید اجرا کنید:
+```bash
+ansible-playbook fg-crw.yml -K --tags firewall --limit fg-crw-01
+ansible-playbook fg-crw.yml -K --tags app --limit fg-crw-01
+```
 
 ---
 
@@ -96,7 +154,18 @@ sudo cat /etc/iptables/rules.v4
 ### اعمال دستی قوانین از فایل
 
 ```bash
-sudo iptables-restore /etc/iptables/rules.v4
+# ❌ خطرناک — ممکن است قوانین Docker را پاک کند
+# sudo iptables-restore /etc/iptables/rules.v4
+
+# ✅ فقط INPUT را rebuild کنید (مثل Ansible)
+sudo iptables -F INPUT
+sudo iptables -A INPUT -i lo -j ACCEPT
+sudo iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+sudo iptables -A INPUT -p tcp --dport 5566 -j ACCEPT
+sudo iptables -A INPUT -p udp --dport 23693 -j ACCEPT
+sudo iptables -A INPUT -p tcp -s 172.20.1.1/32 --dport 10050 -j ACCEPT
+sudo iptables -P INPUT DROP
+sudo iptables-save | sudo tee /etc/iptables/rules.v4
 ```
 
 ### تست موقت با rollback (پیشنهاد قبل از تغییر دستی)
@@ -212,7 +281,8 @@ ansible-playbook fg-crw.yml --tags firewall --limit fg-crw-01
 | علامت | علت احتمالی | راه‌حل |
 |-------|-------------|--------|
 | SSH timeout | policy DROP بدون قانون SSH | Console → flush + ACCEPT |
-| Ansible قطع وسط firewall | taskهای جدا (نسخه قدیم) | نسخه جدید با `iptables-restore` |
+| Ansible قطع وسط firewall | taskهای جدا (نسخه قدیم) | نسخه جدید — فقط INPUT rebuild |
+| Docker build / pip / DNS fail | `FORWARD DROP` یا `iptables-restore` | فقط INPUT rebuild؛ از `iptables-restore` دستی پرهیز کنید |
 | بعد از reboot SSH نمی‌آید | `/etc/iptables/rules.v4` اشتباه | Console → اصلاح فایل |
 | پورت اشتباه | `ssh_port` در host_vars ≠ پورت واقعی sshd | `sshd_config` و `host_vars` را هماهنگ کنید |
 | nftables فعال | تداخل با iptables | `sudo nft list ruleset` — فقط یکی را استفاده کنید |
