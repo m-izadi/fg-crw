@@ -26,28 +26,20 @@
   environment:
     DEBIAN_FRONTEND: noninteractive
 
-- name: Flush existing iptables rules
-  ansible.builtin.command: iptables -F
-
-- name: Set default INPUT policy to DROP
-  ansible.builtin.command: iptables -P INPUT DROP
-
-- name: Allow loopback traffic
-  ansible.builtin.command: iptables -A INPUT -i lo -j ACCEPT
-
-- name: Allow established and related connections
-  ansible.builtin.command: iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-
-- name: Allow SSH on configured port
-  ansible.builtin.command: iptables -A INPUT -p tcp --dport {{ ssh_port }} -j ACCEPT
-
-- name: Allow WireGuard
-  ansible.builtin.command: iptables -A INPUT -p udp --dport {{ wg_interface_listen_port }} -j ACCEPT
-
-- name: Allow Zabbix agent from monitoring server
-  ansible.builtin.command: iptables -A INPUT -p tcp -s {{ zabbix_server_ip }} --dport 10050 -j ACCEPT
-  when: zabbix_server_ip is defined
-
-- name: Save iptables rules
-  ansible.builtin.shell: iptables-save > /etc/iptables/rules.v4
+- name: Apply INPUT firewall rules (preserve Docker FORWARD/OUTPUT)
+  ansible.builtin.shell: |
+    set -euo pipefail
+    iptables -F INPUT
+    iptables -A INPUT -i lo -j ACCEPT
+    iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+    iptables -A INPUT -p tcp --dport {{ ssh_port }} -j ACCEPT
+    iptables -A INPUT -p udp --dport {{ wg_interface_listen_port }} -j ACCEPT
+    {% if zabbix_server_ip is defined %}
+    iptables -A INPUT -p tcp -s {{ zabbix_server_ip }}/32 --dport 10050 -j ACCEPT
+    {% endif %}
+    iptables -P INPUT DROP
+    iptables-save > /etc/iptables/rules.v4
+  args:
+    executable: /bin/bash
+  register: iptables_apply
   changed_when: true

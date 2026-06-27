@@ -36,5 +36,6 @@ zabbix_server_ip: "172.20.1.1"
 # Ports bind only on WireGuard IP — not reachable from the public interface.
 # app_bind_address: "172.20.1.2"
 app_bind_address: "{{ wg_interface_address }}"
-app_deploy_dir: /srv/fg-crw
+app_deploy_dir: /srv/docker-compose/fg-ins-crw
 app_mongo_uri: mongodb://host.docker.internal:27017
+app_compose_pull: false

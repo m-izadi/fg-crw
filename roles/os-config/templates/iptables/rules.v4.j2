@@ -1,0 +1,18 @@
+# Reference snapshot — INPUT rules are applied by Ansible (roles/os-config/tasks/iptables.yml).
+# Do NOT run `iptables-restore` on this file manually: it wipes Docker chains and breaks outbound traffic.
+#
+# This file is overwritten by `iptables-save` after each Ansible run and includes Docker rules too.
+*filter
+:INPUT DROP [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+
+-A INPUT -i lo -j ACCEPT
+-A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+-A INPUT -p tcp --dport {{ ssh_port }} -j ACCEPT
+-A INPUT -p udp --dport {{ wg_interface_listen_port }} -j ACCEPT
+{% if zabbix_server_ip is defined %}
+-A INPUT -p tcp -s {{ zabbix_server_ip }}/32 --dport 10050 -j ACCEPT
+{% endif %}
+
+COMMIT

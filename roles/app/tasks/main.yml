@@ -1,0 +1,72 @@
+---
+- name: Ensure application deploy directory exists
+  ansible.builtin.file:
+    path: "{{ app_deploy_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Deploy docker-compose stack definition
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ app_deploy_dir }}/docker-compose.yml"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Redeploy compose stack
+
+- name: Deploy environment file
+  ansible.builtin.template:
+    src: env.j2
+    dest: "{{ app_deploy_dir }}/.env"
+    owner: root
+    group: root
+    mode: "0600"
+  notify: Redeploy compose stack
+
+- name: Check if api service source exists locally
+  ansible.builtin.stat:
+    # path: "{{ playbook_dir }}/api"
+    path: "{{ app_deploy_dir }}/api"
+  register: app_api_src
+  delegate_to: localhost
+  become: false
+
+- name: Sync api service source
+  ansible.builtin.copy:
+    src: api/
+    dest: "{{ app_deploy_dir }}/api/"
+  when: app_api_src.stat.isdir is defined and app_api_src.stat.isdir
+
+- name: Check if session_manager service source exists locally
+  ansible.builtin.stat:
+    # path: "{{ playbook_dir }}/session_manager"
+    path: "{{ app_deploy_dir }}/session_manager"
+  register: app_session_manager_src
+  delegate_to: localhost
+  become: false
+
+- name: Sync session_manager service source
+  ansible.builtin.copy:
+    src: session_manager/
+    dest: "{{ app_deploy_dir }}/session_manager/"
+  when: app_session_manager_src.stat.isdir is defined and app_session_manager_src.stat.isdir
+
+- name: Pull external images when enabled
+  ansible.builtin.command:
+    cmd: docker compose pull
+    chdir: "{{ app_deploy_dir }}"
+  when: app_compose_pull | bool
+  changed_when: true
+
+- name: Build and start application stack
+  ansible.builtin.command:
+    cmd: docker compose up -d --build --remove-orphans
+    chdir: "{{ app_deploy_dir }}"
+  register: app_compose_up
+  changed_when: >
+    'Built' in app_compose_up.stdout or
+    'Started' in app_compose_up.stdout or
+    'Recreated' in app_compose_up.stdout or
+    'Creating' in app_compose_up.stdout
