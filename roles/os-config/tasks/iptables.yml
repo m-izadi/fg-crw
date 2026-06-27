@@ -26,19 +26,20 @@
   environment:
     DEBIAN_FRONTEND: noninteractive
 
-- name: Deploy iptables rules file
-  ansible.builtin.template:
-    src: iptables/rules.v4.j2
-    dest: /etc/iptables/rules.v4
-    owner: root
-    group: root
-    mode: "0640"
-  register: iptables_rules
-
-- name: Apply iptables rules atomically
-  ansible.builtin.command:
-    argv:
-      - iptables-restore
-      - /etc/iptables/rules.v4
-  register: iptables_restore
-  changed_when: iptables_rules is changed
+- name: Apply INPUT firewall rules (preserve Docker FORWARD/OUTPUT)
+  ansible.builtin.shell: |
+    set -euo pipefail
+    iptables -F INPUT
+    iptables -A INPUT -i lo -j ACCEPT
+    iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+    iptables -A INPUT -p tcp --dport {{ ssh_port }} -j ACCEPT
+    iptables -A INPUT -p udp --dport {{ wg_interface_listen_port }} -j ACCEPT
+    {% if zabbix_server_ip is defined %}
+    iptables -A INPUT -p tcp -s {{ zabbix_server_ip }}/32 --dport 10050 -j ACCEPT
+    {% endif %}
+    iptables -P INPUT DROP
+    iptables-save > /etc/iptables/rules.v4
+  args:
+    executable: /bin/bash
+  register: iptables_apply
+  changed_when: true
