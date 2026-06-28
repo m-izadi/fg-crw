@@ -1,5 +1,10 @@
-# ---
-# app_deploy_dir: /srv/docker-compose/fg-ins-crw
-# app_bind_address: "{{ wg_interface_address | default('127.0.0.1') }}"
-# app_mongo_uri: mongodb://host.docker.internal:27017
-# app_compose_pull: false
+---
+app_api_port: 8000
+app_session_manager_port: 8001
+app_zookeeper_port: 2181
+app_kafka_port: 9092
+app_healthcheck_connect_timeout: 5
+app_healthcheck_interval: 30s
+app_healthcheck_timeout: 10s
+app_healthcheck_retries: 3
+app_healthcheck_start_period: 40s
