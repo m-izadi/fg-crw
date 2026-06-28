@@ -1,53 +1,51 @@
 ---
-# - name: Configure network settings
-#   # become: yes
-#   ansible.builtin.template:
-#     src: 50-cloud-init.yaml.j2
-#     dest: /etc/netplan/50-cloud-init.yaml
-#     owner: root
-#     group: root
-#     # mode: '0644'
-#     mode: '0600'
-#   notify: Hey Handler! PLZ apply netplan
-
 - name: Ensure WireGuard config directory exists
-  file:
+  ansible.builtin.file:
     path: /etc/wireguard
     state: directory
     mode: '0700'
+  tags: [os-config, wireguard]
 
 - name: Deploy WireGuard configuration
-  template:
+  ansible.builtin.template:
     src: wg1.conf.j2
     dest: /etc/wireguard/wg1.conf
     mode: '0600'
   notify: Hey Handler! PLZ Bring UP the Wireguard Tunnel.
+  tags: [os-config, wireguard]
 
 - name: Zabbix Server
   ansible.builtin.include_tasks: zabbix_server.yml
+  tags: [os-config, zabbix]
 
 - name: Configuring USERS
   ansible.builtin.include_tasks: create_users.yml
+  tags: [os-config, users]
 
 - name: Include faillock protection
-  include_tasks: faillock.yml
-  tags: pam
+  ansible.builtin.include_tasks: faillock.yml
+  tags: [os-config, pam]
 
 - name: Nodename(HostName) Configuration
   ansible.builtin.include_tasks: hostname.yml
+  tags: [os-config, hostname]
 
 - name: Configure ssh_config
   ansible.builtin.include_tasks: ssh_config.yml
-  
+  tags: [os-config, ssh]
+
 - name: CronTab
   ansible.builtin.include_tasks: cron.yml
+  tags: [os-config, cron]
 
 - name: Security
   ansible.builtin.include_tasks: security.yml
+  tags: [os-config, security]
 
 - name: Firewall
   ansible.builtin.include_tasks: iptables.yml
-  tags: [firewall]
+  tags: [os-config, firewall]
 
 - name: Backup
   ansible.builtin.include_tasks: backup.yml
+  tags: [os-config, backup]
