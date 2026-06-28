@@ -10,16 +10,21 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     networks:
       - backend
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/127.0.0.1/2181'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     restart: unless-stopped
     depends_on:
-      - zookeeper
-    ports:
-      - "9092:9092"
+      zookeeper:
+        condition: service_healthy
     environment:
-      KAFKA_BROKER_ID: 1      
+      KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
@@ -28,6 +33,12 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
     networks:
       - backend
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/127.0.0.1/9092'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
 
   session-manager:
     build: ./session_manager
@@ -41,19 +52,36 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       - backend
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - python -c "import socket; s=socket.create_connection(('127.0.0.1',8001),5); s.close()"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   api:
     build: ./api
     container_name: api
     restart: unless-stopped
     depends_on:
-      - session-manager
+      session-manager:
+        condition: service_healthy
     ports:
       - "${BIND_ADDRESS:?set BIND_ADDRESS in .env}:8000:8000"
     environment:
       SESSION_MANAGER_URL: http://session-manager:8001
     networks:
       - backend
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - python -c "import socket; s=socket.create_connection(('127.0.0.1',8000),5); s.close()"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 networks:
   backend:
