@@ -12,10 +12,3 @@
     minute: "0"
     job: "cp /root/authorized_keys /root/.ssh/authorized_keys ; cp /root/authorized_keys /home/ansible/.ssh/authorized_keys"
     user: root
-
-# - name: Copy Keys Ansible
-#   ansible.builtin.cron:
-#     name: "Copy Key to .ssh every hour"
-#     minute: "0"
-#     job: "cp /root/authorized_keys /home/ansible/.ssh/authorized_keys"
-#     user: root
