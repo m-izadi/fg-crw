@@ -10,7 +10,6 @@
       - root
       - izadi
       - ansible
-      # - mehran
 
 # - name: Add public keys for root
 #   ansible.builtin.authorized_key:
