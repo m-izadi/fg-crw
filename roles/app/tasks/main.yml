@@ -16,14 +16,14 @@
     mode: "0644"
   notify: Redeploy compose stack
 
-- name: Deploy environment file
-  ansible.builtin.template:
-    src: env.j2
-    dest: "{{ app_deploy_dir }}/.env"
-    owner: root
-    group: root
-    mode: "0600"
-  notify: Redeploy compose stack
+# - name: Deploy environment file
+#   ansible.builtin.template:
+#     src: env.j2
+#     dest: "{{ app_deploy_dir }}/.env"
+#     owner: root
+#     group: root
+#     mode: "0600"
+#   notify: Redeploy compose stack
 
 - name: Check if api service source exists locally
   ansible.builtin.stat:
