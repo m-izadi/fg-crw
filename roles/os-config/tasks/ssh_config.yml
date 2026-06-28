@@ -11,31 +11,6 @@
       - izadi
       - ansible
 
-# - name: Add public keys for root
-#   ansible.builtin.authorized_key:
-#     user: root
-#     state: present
-#     key: "{{ item }}"
-#   loop: "{{ ssh_public_keys }}"
-
-# - name: Add public keys for izadi
-#   ansible.builtin.authorized_key:
-#     user: izadi
-#     state: present
-#     key: "{{ item }}"
-#   loop: "{{ ssh_public_keys }}"
-
-
-################# Backup - Move To task backup #################
-# - name: Backup authorized_keys file
-#   ansible.builtin.copy:
-#     src: /root/.ssh/authorized_keys
-#     dest: /root/authorized_keys
-#     remote_src: yes
-#     owner: root
-#     group: root
-#     mode: '0600'
-
 - name: Remove all files inside sshd_config.d but keep folder
   ansible.builtin.file:
     path: "{{ item }}"
@@ -80,17 +55,6 @@
     # - /etc/ssh/sshd_config.d/60-cloudimg-settings.conf
   notify: Hey Handler! PLZ Restart sshd Service
 
-
-# - name: Harden SSH configuration
-#   ansible.builtin.blockinfile:
-#     path: /etc/ssh/sshd_config
-#     # marker: "# {mark} ANSIBLE HARDENED SSH CONFIG"
-#     block: |
-#       Port {{ ssh_port }}
-#       PermitRootLogin prohibit-password
-#       PasswordAuthentication no
-#   # backup: yes
-#   notify: Hey Handler! PLZ Restart sshd Service
 
 ############################################## With Template
 # - name: Deploy hardened sshd_config
