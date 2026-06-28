@@ -121,18 +121,21 @@ docker compose ps
 docker inspect --format='{{.State.Health.Status}}' session-manager api kafka zookeeper
 ```
 
-| سرویس | healthcheck |
-|--------|-------------|
-| zookeeper | `ruok` → `imok` روی پورت 2181 |
-| kafka | `kafka-broker-api-versions` روی localhost:9092 |
-| session-manager | HTTP `GET /health` روی پورت 8001 |
-| api | HTTP `GET /health` روی پورت 8000 |
+| سرویس | healthcheck | معنی |
+|--------|-------------|------|
+| zookeeper | TCP پورت `2181` | پورت listen می‌کند (`nc` در image Confluent نیست) |
+| kafka | TCP پورت `9092` | بروکر listen می‌کند |
+| session-manager | TCP پورت `8001` | پروسه بالا است و پورت listen می‌کند |
+| api | TCP پورت `8000` | پروسه بالا است و پورت listen می‌کند |
 
-اگر endpoint سلامت متفاوت است، در `inventory/host_vars/fg-crw-01.yml` تنظیم کنید:
+نیازی به endpoint `/health` در کد اپلیکیشن نیست — فقط باز بودن پورت چک می‌شود.
+
+پورت‌ها در `roles/app/defaults/main.yml` قابل تنظیم‌اند:
 
 ```yaml
-app_api_health_path: /health
-app_session_manager_health_path: /health
+app_api_port: 8000
+app_session_manager_port: 8001
+app_healthcheck_connect_timeout: 5
 ```
 
 ---
