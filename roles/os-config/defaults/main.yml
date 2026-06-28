@@ -4,6 +4,6 @@ ssh_public_keys:
   - "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAvt71kN5p+nJ7SFDhfJDHTcLqc8oSLcq2/kxAI0H1ZR5M2aOkPxg0ilkEqLY+NQEC9hNTFKs6mKr5z3n2to6sbhCoEoAB8KCPoQpUFaANSeNxJ42k5mzQQhX9fZjlcjiyBPJiSw6J9Un/VTkgZ8W6Oj+GjlRpm/phyvRozvuUUfFRIrjb3LYsq6KgZrwQEn1i46Pwf3Jowr3a7sqTjsRn8uidH8CqeEFhfbOecZF37mISv0Q0H5tGMR4+eSqgI0rZlu99UQknLDNFHxHOw59XPlUpY+ptNv9H8qmUDOa4Ury3Zc3KZvMKjyKAOncJZdhg3Zmnh5IJPipXRXl7wVJM2w== rsa-key-20210503 M.Izadi"
   - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJi1FcgMrpvsdx8McUJT548z4J6b5n4kD49r7Xa94SX2 Izadi"
 # SSH settings
-ssh_port: 5566
+# ssh_port: 5566
 ssh_timeout: 30
 allowtcpforwarding: local  # Local = VSCode Access
