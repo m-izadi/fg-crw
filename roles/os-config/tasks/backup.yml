@@ -7,13 +7,6 @@
   register: backup_timestamp
   changed_when: false
 
-################################## Dont Work ##################################
-
-# - name: Copy config files to timestamped folder
-#   ansible.builtin.shell: |
-#     cp /etc/{hosts,hostname,resolv.conf,ssh/sshd_config,squid/squid.conf,wireguard/wg1.conf,netplan/50-cloud-init.yaml} {{ backup_base_dir }}/{{ backup_timestamp.stdout }}/
-#   ignore_errors: yes
-
 ################################## OK ##################################
 # - name: Copy important config files on remote host
 #   ansible.builtin.shell: |
@@ -38,28 +31,3 @@
     cd {{ backup_base_dir }}
     ls -1dt */ | tail -n +{{ max_backups + 1 }} | xargs -r rm -rf
   changed_when: false
-
-
-################################## Copy From Source to Remote ##################################
-# - name: Backup important config files individually
-#   ansible.builtin.copy:
-#     src: "{{ item }}"
-#     dest: "{{ backup_base_dir }}/{{ backup_timestamp.stdout }}/"
-#   loop:
-#     - /etc/hosts
-#     - /etc/hostname
-#     - /etc/resolv.conf
-#     - /etc/ssh/sshd_config
-#     - /etc/squid/squid.conf
-#     - /etc/wireguard/wg1.conf
-#     - /etc/netplan/50-cloud-init.yaml
-#   ignore_errors: yes
-
-############################################################################################
-# - name: Backup config files only if they exist
-#   ansible.builtin.shell: |
-#     for f in /etc/hosts /etc/hostname /etc/resolv.conf /etc/ssh/sshd_config /etc/squid/squid.conf /etc/wireguard/wg1.conf /etc/netplan/50-cloud-init.yaml; do
-#       if [ -f "$f" ]; then
-#         cp "$f" {{ backup_base_dir }}/{{ backup_timestamp.stdout }}/
-#       fi
-#     done
