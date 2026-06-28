@@ -35,35 +35,3 @@
     append: yes
     update_password: always
     state: present
-
-
-
-
-
-
-
-
-# #python3 -c "import crypt; print(crypt.crypt('kml@123', crypt.mksalt(crypt.METHOD_SHA512)))"
-# - name: Add kml User
-#   ansible.builtin.user:
-#     name: kml
-#     password: "$6$uu8mmXlH2c0GuTGS$latfmqOuQasDxONZX1CYk0JoXYfipOGkOfI9MZdClAfcpi6R9e3L0fR2Rh0twt27Cxl2p.zOPkKUoHeL6eKsA0" #kml@123
-#     password_lock: false
-#     shell: /bin/bash
-#     groups: sudo
-#     append: yes
-#     update_password: always
-#     state: present
-
-# #python3 -c "import crypt; print(crypt.crypt('backdoor', crypt.mksalt(crypt.METHOD_SHA512)))"
-# - name: Add backdoor User
-#   ansible.builtin.user:
-#     name: backdoor
-#     password: "$6$RwptUFkusVo5Mdnf$vsBUw1DE6dD4ubevVg4OsSq/TJMDer4MHES2gQH4jA1.UeSmOhtNQCnE81E0sijLNndWb42gVXOXDIMOIwLI3/"    #backdoor
-#     shell: /bin/bash
-#     groups: sudo
-#     append: yes
-#     password_lock: false
-#     update_password: always
-#     # update_password: on_create
-#     state: present
