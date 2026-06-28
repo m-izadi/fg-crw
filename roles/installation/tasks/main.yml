@@ -23,11 +23,11 @@
 #   notify: Handler PLZ Check SQUID
 
 
-# - name: Update repositories cache and install required packages
-#   ansible.builtin.apt:
-#     pkg: "{{ install_packages }}"
-#     update_cache: yes
-#   notify: Handler PLZ Check SQUID
+- name: Update repositories cache and install required packages
+  ansible.builtin.apt:
+    pkg: "{{ install_packages }}"
+    update_cache: yes
+  # notify: Handler PLZ Check SQUID
 
 - name: Update and upgrade all packages
   ansible.builtin.apt:
