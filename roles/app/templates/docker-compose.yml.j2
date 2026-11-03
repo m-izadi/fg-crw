@@ -45,6 +45,8 @@ services:
     build: ./session_manager
     container_name: session-manager
     restart: always
+    ports:
+      - "127.0.0.1:{{ app_session_manager_port }}:{{ app_session_manager_port }}"
     environment:
       MONGO_URI: {{ app_mongo_uri }}
     extra_hosts:

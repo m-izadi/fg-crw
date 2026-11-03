@@ -135,5 +135,8 @@ docker compose ps
 | Mongo | `mongosh mongodb://127.0.0.1:27017` روی هاست |
 | `wg-quick` با `PostUp`/`Configuration parsing error` | هوک‌ها باید زیر `[Interface]` باشند نه بعد از `[Peer]` — دوباره `--tags failover` بزنید |
 | `wg-quick@wg1` start fail با هوک‌های درست | `PostUp` نباید `systemctl` همزمان بزند (deadlock). اسکریپت notify باید background + `exit 0` باشد. بازیابی دستی: `wg-quick down wg1; ip link del wg1; wg-quick up wg1` |
+| `ModuleNotFoundError` در worker | پکیج در `scheduler/requirements.txt` نیست — اضافه کنید و `pip install -r requirements.txt` داخل `.venv` |
+| `wg-failover` با status=129 | سیگنال HUP موقع `sleep` با `set -e` — کنترلر باید `sleep \|\| true` داشته باشد |
+| تونل UP ولی state=`down` | چک interface نباید فقط `state UP` باشد؛ WG معمولاً `state UNKNOWN` می‌دهد |
 
 </div>

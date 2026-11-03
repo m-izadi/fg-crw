@@ -82,10 +82,11 @@
     enabled: true
     state: started
 
-- name: Enable scheduler worker units (started by controller when tunnel is down)
+# Not enabled at boot — controller starts/stops these based on tunnel state.
+- name: Disable scheduler worker units at boot (controller-managed)
   ansible.builtin.systemd:
     name: "failover-scheduler@{{ item }}.service"
-    enabled: true
+    enabled: false
   loop: "{{ scheduler_scripts }}"
 
 # PostUp/PreDown must live under [Interface]; after [Peer] breaks wg-quick.

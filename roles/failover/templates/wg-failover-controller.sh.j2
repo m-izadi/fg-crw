@@ -11,7 +11,6 @@ readonly SUCCESS_THRESHOLD="{{ wg_failover_success_threshold }}"
 readonly APP_DIR="{{ app_deploy_dir }}"
 readonly COMPOSE_BASE="${APP_DIR}/docker-compose.yml"
 readonly COMPOSE_WG="${APP_DIR}/docker-compose.wg-bindings.yml"
-readonly SCHEDULER_ENV="{{ scheduler_dir }}/scheduler.env"
 readonly LOG_TAG="wg-failover"
 
 STATE_FILE="/run/wg-failover.state"
@@ -21,10 +20,11 @@ CURRENT_STATE="unknown"
 
 on_hup() {
   log "SIGHUP received — re-evaluating tunnel state"
-  evaluate_tunnel
+  evaluate_tunnel || true
 }
 
-trap on_hup HUP
+# HUP must not abort the process (systemd would report status=129).
+trap 'on_hup' HUP
 
 log() {
   logger -t "${LOG_TAG}" "$*"
@@ -32,7 +32,11 @@ log() {
 }
 
 is_wg_interface_up() {
-  ip link show dev "${WG_INTERFACE}" 2>/dev/null | grep -q "state UP"
+  # WireGuard often reports operstate UNKNOWN while flags still include UP.
+  local line
+  line="$(ip -o link show dev "${WG_INTERFACE}" 2>/dev/null || true)"
+  [[ -n "${line}" ]] || return 1
+  [[ "${line}" == *"<"*UP* ]] || [[ "${line}" == *",UP,"* ]] || [[ "${line}" == *",UP>"* ]]
 }
 
 is_handshake_fresh() {
@@ -113,8 +117,9 @@ main() {
   fi
 
   while true; do
-    evaluate_tunnel
-    sleep "${CHECK_INTERVAL}"
+    evaluate_tunnel || true
+    # sleep returns >128 when interrupted by HUP; must not trip set -e
+    sleep "${CHECK_INTERVAL}" || true
   done
 }
 
