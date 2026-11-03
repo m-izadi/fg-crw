@@ -1,19 +1,26 @@
 #!/usr/bin/env bash
-# Fast-path notify from WireGuard PostUp/PostDown hooks.
-set -euo pipefail
+# Fast-path notify from WireGuard PostUp/PreDown hooks.
+# IMPORTANT: must always exit 0. A non-zero exit aborts wg-quick.
+# Also must NOT call systemctl synchronously — wg-quick runs under
+# systemd (wg-quick@wg1); nested transactions deadlock or fail the tunnel.
 
 ACTION="${1:-}"
 case "${ACTION}" in
-  up)
-    logger -t wg-failover "WireGuard PostUp — requesting immediate tunnel-up evaluation"
-  ;;
-  down)
-    logger -t wg-failover "WireGuard PreDown — requesting immediate tunnel-down evaluation"
-  ;;
+  up|down)
+    logger -t wg-failover "WireGuard ${ACTION} — requesting tunnel re-evaluation" || true
+    ;;
   *)
-    echo "Usage: $0 {up|down}" >&2
-    exit 1
-  ;;
+    logger -t wg-failover "WireGuard notify called with invalid action: ${ACTION:-empty}" || true
+    exit 0
+    ;;
 esac
 
-systemctl kill -s HUP wg-failover.service 2>/dev/null || systemctl restart wg-failover.service
+# Deferred + background: avoid nested systemd transaction with wg-quick@wg1.
+(
+  sleep 1
+  systemctl kill -s HUP wg-failover.service 2>/dev/null \
+    || systemctl start wg-failover.service 2>/dev/null \
+    || true
+) >/dev/null 2>&1 &
+
+exit 0

@@ -134,5 +134,6 @@ docker compose ps
 | API در failover | `curl http://127.0.0.1:8000` |
 | Mongo | `mongosh mongodb://127.0.0.1:27017` روی هاست |
 | `wg-quick` با `PostUp`/`Configuration parsing error` | هوک‌ها باید زیر `[Interface]` باشند نه بعد از `[Peer]` — دوباره `--tags failover` بزنید |
+| `wg-quick@wg1` start fail با هوک‌های درست | `PostUp` نباید `systemctl` همزمان بزند (deadlock). اسکریپت notify باید background + `exit 0` باشد. بازیابی دستی: `wg-quick down wg1; ip link del wg1; wg-quick up wg1` |
 
 </div>

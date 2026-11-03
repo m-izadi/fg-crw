@@ -103,4 +103,4 @@
     block: |
       PostUp = {{ failover_notify_bin }} up
       PreDown = {{ failover_notify_bin }} down
-  notify: Restart WireGuard interface
+  notify: Hey Handler! PLZ Bring UP the Wireguard Tunnel.

@@ -1,8 +1,11 @@
 ---
+# Prefer the shared listen topic so only one bring-up path runs.
+# Kept for backward compatibility if something still notifies by this name.
 - name: Restart WireGuard interface
   ansible.builtin.shell: |
     set -e
     wg-quick down {{ wg_interface }} 2>/dev/null || true
+    ip link delete dev {{ wg_interface }} 2>/dev/null || true
     wg-quick up {{ wg_interface }}
     systemctl enable "wg-quick@{{ wg_interface }}"
   args:

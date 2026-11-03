@@ -4,18 +4,17 @@
   ansible.builtin.command: netplan apply
   listen: Hey Handler! PLZ apply netplan
 
+# Resilient bring-up: systemd "restart" fails if unit is failed or interface is orphaned.
 - name: Restart  WireGuard Service
-  systemd:
-    name: wg-quick@wg1
-    state: restarted
-    enabled: yes
+  ansible.builtin.shell: |
+    set -e
+    wg-quick down wg1 2>/dev/null || true
+    ip link delete dev wg1 2>/dev/null || true
+    wg-quick up wg1
+    systemctl enable wg-quick@wg1
+  args:
+    executable: /bin/bash
   listen: Hey Handler! PLZ Bring UP the Wireguard Tunnel.
-
-# - name: Raising the Wireguard Tunnel
-#   ansible.builtin.shell: wg-quick up wg1
-#   args:
-#     executable: /bin/bash
-#   listen: Hey Handler! PLZ Bring UP the Wireguard Tunnel.
 
 - name: Restart zabbix-agent
   systemd:

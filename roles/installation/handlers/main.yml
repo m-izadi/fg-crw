@@ -1,6 +1,3 @@
-- name: Restart  WireGuard Service
-  systemd:
-    name: wg-quick@wg1
-    state: restarted
-    enabled: yes
-  listen: Hey Handler! PLZ Bring UP the Wireguard Tunnel.
+---
+# WireGuard bring-up lives in roles/os-config/handlers (shared listen topic).
+# Do not duplicate "Hey Handler! PLZ Bring UP the Wireguard Tunnel." here.
