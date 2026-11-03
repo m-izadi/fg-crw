@@ -53,6 +53,7 @@ ansible-playbook fg-crw.yml --limit fg-crw-01 --tags "docker,app-config"
 | **اپلیکیشن (همه app)** | `app` | `ansible-playbook fg-crw.yml --limit fg-crw-01 --tags app` |
 | فقط deploy فایل‌های compose | `app-config` | `ansible-playbook fg-crw.yml --limit fg-crw-01 --tags app-config` |
 | build و start کانتینرها | `app-build` | `ansible-playbook fg-crw.yml --limit fg-crw-01 --tags app-build` |
+| **failover scheduler** | `failover` | `ansible-playbook fg-crw.yml --limit fg-crw-01 --tags failover` |
 
 ---
 
@@ -98,6 +99,16 @@ ansible-playbook fg-crw.yml --limit fg-crw-01 --tags "installation,os-config"
 ### Docker + App (بدون لمس OS)
 ```bash
 ansible-playbook fg-crw.yml --limit fg-crw-01 --tags "docker,app"
+```
+
+### deploy failover scheduler (WireGuard monitor)
+```bash
+ansible-playbook fg-crw.yml --limit fg-crw-01 --tags failover
+```
+
+### app + failover با هم
+```bash
+ansible-playbook fg-crw.yml --limit fg-crw-01 --tags "app,failover"
 ```
 
 ### Dry-run (بدون اعمال تغییر)
@@ -146,3 +157,4 @@ app_healthcheck_connect_timeout: 5
 - `zabbix` هم در installation (repo) و هم در os-config (agent config) استفاده می‌شود — با `--tags zabbix` هر دو اجرا می‌شوند.
 - قبل از `firewall` یک session SSH backup باز نگه دارید ([راهنمای iptables](iptables.md)).
 - برای deploy فقط compose بدون build: `--tags app-config`
+- راهنمای failover scheduler: [failover.md](failover.md)

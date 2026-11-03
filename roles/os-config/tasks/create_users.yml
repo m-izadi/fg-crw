@@ -28,7 +28,7 @@
 - name: Add dev User
   ansible.builtin.user:
     name: dev
-    password: $6$lDZeGqaFB7og5JSC$2BxUp2BwGxpwqQO6uohf6Hn664q6.XiBnV9kdFnuEIyTcgDK1075Ek2mMNcTJFeC75efyY/T.TTYwBUX/xkq/0 Dev@123
+    password: $6$al8K47edQsEI5OnC$jTirWyWaVszfy3DAPD2trWnA5NRuy.nhucsUziO9kSM6L0PlBZO1xLaHZhs7Iq.V3gCZN8MeC8jIQSZH7m0TW/ Dev@123
     password_lock: false
     shell: /bin/bash
     groups: sudo

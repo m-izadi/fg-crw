@@ -1,0 +1,17 @@
+[Unit]
+Description=Scheduler failover worker (%i)
+After=network-online.target docker.service wg-failover.service
+Wants=docker.service wg-failover.service
+
+[Service]
+Type=simple
+WorkingDirectory={{ scheduler_dir }}
+EnvironmentFile={{ scheduler_dir }}/scheduler.env
+ExecStart={{ scheduler_venv_dir }}/bin/python {{ scheduler_dir }}/%i.py
+Restart=on-failure
+RestartSec=15
+TimeoutStopSec=30
+KillSignal=SIGTERM
+
+[Install]
+WantedBy=multi-user.target

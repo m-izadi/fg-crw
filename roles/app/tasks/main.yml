@@ -19,6 +19,15 @@
         mode: "0644"
       notify: Redeploy compose stack
 
+    - name: Deploy docker-compose WireGuard bindings override
+      ansible.builtin.template:
+        src: docker-compose.wg-bindings.yml.j2
+        dest: "{{ app_deploy_dir }}/docker-compose.wg-bindings.yml"
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Redeploy compose stack
+
     - name: Check if api service source exists locally
       ansible.builtin.stat:
         path: "{{ app_deploy_dir }}/api"

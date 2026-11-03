@@ -3,6 +3,7 @@ app_api_port: 8000
 app_session_manager_port: 8001
 app_zookeeper_port: 2181
 app_kafka_port: 9092
+app_kafka_host_port: 9093
 app_healthcheck_connect_timeout: 5
 app_healthcheck_interval: 30s
 app_healthcheck_timeout: 10s

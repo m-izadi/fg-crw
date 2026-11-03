@@ -1,0 +1,9 @@
+# Applied only when WireGuard tunnel is UP (company connected).
+services:
+  api:
+    ports:
+      - "{{ app_bind_address }}:{{ app_api_port }}:{{ app_api_port }}"
+
+  session-manager:
+    ports:
+      - "{{ app_bind_address }}:{{ app_session_manager_port }}:{{ app_session_manager_port }}"

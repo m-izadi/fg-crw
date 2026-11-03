@@ -20,11 +20,15 @@ services:
     depends_on:
       zookeeper:
         condition: service_healthy
+    ports:
+      - "127.0.0.1:{{ app_kafka_host_port }}:{{ app_kafka_host_port }}"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,HOST:PLAINTEXT
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:9092,HOST://0.0.0.0:{{ app_kafka_host_port }}
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,HOST://127.0.0.1:{{ app_kafka_host_port }}
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
@@ -41,8 +45,6 @@ services:
     build: ./session_manager
     container_name: session-manager
     restart: always
-    ports:
-      - "{{ app_bind_address }}:8001:8001"
     environment:
       MONGO_URI: {{ app_mongo_uri }}
     extra_hosts:
@@ -66,7 +68,7 @@ services:
       session-manager:
         condition: service_healthy
     ports:
-      - "{{ app_bind_address }}:8000:8000"
+      - "127.0.0.1:{{ app_api_port }}:{{ app_api_port }}"
     environment:
       SESSION_MANAGER_URL: http://session-manager:8001
     networks:

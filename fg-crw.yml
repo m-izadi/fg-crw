@@ -31,3 +31,5 @@
       tags: [docker, app]
     - role: app
       tags: [app]
+    - role: failover
+      tags: [failover]

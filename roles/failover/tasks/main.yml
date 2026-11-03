@@ -1,0 +1,98 @@
+---
+- name: Install scheduler Python venv dependencies
+  ansible.builtin.apt:
+    name:
+      - python3-venv
+      - python3-pip
+    state: present
+
+- name: Ensure scheduler directory exists
+  ansible.builtin.file:
+    path: "{{ scheduler_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Check scheduler requirements on target host
+  ansible.builtin.stat:
+    path: "{{ scheduler_dir }}/requirements.txt"
+  register: scheduler_requirements
+
+- name: Create scheduler virtualenv
+  ansible.builtin.command:
+    cmd: python3 -m venv "{{ scheduler_venv_dir }}"
+    creates: "{{ scheduler_venv_dir }}/bin/python"
+  when: scheduler_requirements.stat.exists
+
+- name: Install scheduler Python requirements
+  ansible.builtin.pip:
+    requirements: "{{ scheduler_dir }}/requirements.txt"
+    virtualenv: "{{ scheduler_venv_dir }}"
+    virtualenv_command: python3 -m venv
+  when: scheduler_requirements.stat.exists
+
+- name: Deploy scheduler environment file
+  ansible.builtin.template:
+    src: scheduler.env.j2
+    dest: "{{ scheduler_dir }}/scheduler.env"
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: Deploy WireGuard failover controller
+  ansible.builtin.template:
+    src: wg-failover-controller.sh.j2
+    dest: "{{ failover_controller_bin }}"
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Deploy WireGuard failover notify helper
+  ansible.builtin.template:
+    src: wg-failover-notify.sh.j2
+    dest: "{{ failover_notify_bin }}"
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Deploy scheduler systemd unit template
+  ansible.builtin.template:
+    src: failover-scheduler@.service.j2
+    dest: /etc/systemd/system/failover-scheduler@.service
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Deploy WireGuard failover systemd service
+  ansible.builtin.template:
+    src: wg-failover.service.j2
+    dest: /etc/systemd/system/wg-failover.service
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Enable WireGuard failover controller
+  ansible.builtin.systemd:
+    name: wg-failover.service
+    enabled: true
+    state: started
+
+- name: Enable scheduler worker units (started by controller when tunnel is down)
+  ansible.builtin.systemd:
+    name: "failover-scheduler@{{ item }}.service"
+    enabled: true
+  loop: "{{ scheduler_scripts }}"
+
+- name: Configure WireGuard hooks for failover notify
+  ansible.builtin.blockinfile:
+    path: /etc/wireguard/{{ wg_interface }}.conf
+    marker: "# {mark} ANSIBLE WG-FAILOVER HOOKS"
+    block: |
+      PostUp = {{ failover_notify_bin }} up
+      PreDown = {{ failover_notify_bin }} down
+  notify: Restart WireGuard interface
