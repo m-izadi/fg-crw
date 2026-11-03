@@ -1,0 +1,28 @@
+---
+description: Enforce RTL formatting for Persian responses
+alwaysApply: true
+---
+
+# Persian Responses Must Be RTL
+
+- When the user asks in Persian (Farsi), write Persian explanations in RTL.
+- Wrap Persian prose and explanations with: `<div dir="rtl"> ... </div>`.
+- If the response includes code, command output, paths, or configuration snippets, render those parts in LTR.
+- Wrap code blocks/snippets with: `<div dir="ltr"> ... </div>`.
+- Keep inline English words, commands, file paths, and inline code in backticks.
+- If the user explicitly asks for English, answer in English without RTL wrapper.
+- Apply the same RTL/LTR rules to Persian documentation in `README.md` under `DockerCompose/platform-stack/` (and subfolders). English headings may stay LTR; wrap Persian prose in `<div dir="rtl">` and code/diagrams in `<div dir="ltr">`.
+
+## Required Mixed-Direction Style
+
+````html
+<div dir="rtl">
+متن فارسی و توضیحات راست‌به‌چپ هستند.
+</div>
+
+<div dir="ltr">
+```bash
+./gradlew assembleDebug
+```
+</div>
+````

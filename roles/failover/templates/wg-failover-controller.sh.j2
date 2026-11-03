@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+# Managed by Ansible — WireGuard tunnel failover controller.
+set -euo pipefail
+
+readonly WG_INTERFACE="{{ wg_interface }}"
+readonly WG_PEER_IP="{{ wg_peer_check_ip }}"
+readonly HANDSHAKE_MAX_AGE="{{ wg_handshake_max_age_seconds }}"
+readonly CHECK_INTERVAL="{{ wg_failover_check_interval }}"
+readonly FAIL_THRESHOLD="{{ wg_failover_fail_threshold }}"
+readonly SUCCESS_THRESHOLD="{{ wg_failover_success_threshold }}"
+readonly APP_DIR="{{ app_deploy_dir }}"
+readonly COMPOSE_BASE="${APP_DIR}/docker-compose.yml"
+readonly COMPOSE_WG="${APP_DIR}/docker-compose.wg-bindings.yml"
+readonly SCHEDULER_ENV="{{ scheduler_dir }}/scheduler.env"
+readonly LOG_TAG="wg-failover"
+
+STATE_FILE="/run/wg-failover.state"
+FAIL_COUNT=0
+SUCCESS_COUNT=0
+CURRENT_STATE="unknown"
+
+on_hup() {
+  log "SIGHUP received — re-evaluating tunnel state"
+  evaluate_tunnel
+}
+
+trap on_hup HUP
+
+log() {
+  logger -t "${LOG_TAG}" "$*"
+  echo "[$(date -Is)] $*"
+}
+
+is_wg_interface_up() {
+  ip link show dev "${WG_INTERFACE}" 2>/dev/null | grep -q "state UP"
+}
+
+is_handshake_fresh() {
+  local now latest handshake_age
+  now="$(date +%s)"
+  latest="$(wg show "${WG_INTERFACE}" latest-handshakes 2>/dev/null | awk '{print $2}' | head -n1)"
+  [[ -n "${latest}" && "${latest}" != "0" ]] || return 1
+  handshake_age=$((now - latest))
+  [[ "${handshake_age}" -le "${HANDSHAKE_MAX_AGE}" ]]
+}
+
+is_peer_reachable() {
+  ping -c 1 -W 2 "${WG_PEER_IP}" >/dev/null 2>&1
+}
+
+tunnel_is_healthy() {
+  is_wg_interface_up && is_handshake_fresh && is_peer_reachable
+}
+
+compose_cmd() {
+  if [[ -f "${COMPOSE_WG}" ]]; then
+    docker compose -f "${COMPOSE_BASE}" -f "${COMPOSE_WG}" "$@"
+  else
+    docker compose -f "${COMPOSE_BASE}" "$@"
+  fi
+}
+
+compose_cmd_local() {
+  docker compose -f "${COMPOSE_BASE}" "$@"
+}
+
+ensure_stack_running() {
+  compose_cmd_local up -d zookeeper kafka session-manager api
+}
+
+apply_tunnel_up_mode() {
+  log "Tunnel UP — stopping scheduler workers, enabling WireGuard port bindings"
+  systemctl stop 'failover-scheduler@main_post.service' 'failover-scheduler@main_story.service' 2>/dev/null || true
+  compose_cmd up -d zookeeper kafka session-manager api
+  echo "up" > "${STATE_FILE}"
+  CURRENT_STATE="up"
+}
+
+apply_tunnel_down_mode() {
+  log "Tunnel DOWN — starting scheduler workers (localhost docker bindings only)"
+  compose_cmd_local up -d zookeeper kafka session-manager api
+  systemctl start 'failover-scheduler@main_post.service' 'failover-scheduler@main_story.service'
+  echo "down" > "${STATE_FILE}"
+  CURRENT_STATE="down"
+}
+
+evaluate_tunnel() {
+  if tunnel_is_healthy; then
+    FAIL_COUNT=0
+    SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+    if [[ "${CURRENT_STATE}" != "up" && "${SUCCESS_COUNT}" -ge "${SUCCESS_THRESHOLD}" ]]; then
+      apply_tunnel_up_mode
+    fi
+  else
+    SUCCESS_COUNT=0
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+    if [[ "${CURRENT_STATE}" != "down" && "${FAIL_COUNT}" -ge "${FAIL_THRESHOLD}" ]]; then
+      apply_tunnel_down_mode
+    fi
+  fi
+}
+
+main() {
+  mkdir -p /run
+  ensure_stack_running
+
+  if tunnel_is_healthy; then
+    apply_tunnel_up_mode
+    SUCCESS_COUNT="${SUCCESS_THRESHOLD}"
+  else
+    apply_tunnel_down_mode
+    FAIL_COUNT="${FAIL_THRESHOLD}"
+  fi
+
+  while true; do
+    evaluate_tunnel
+    sleep "${CHECK_INTERVAL}"
+  done
+}
+
+main "$@"

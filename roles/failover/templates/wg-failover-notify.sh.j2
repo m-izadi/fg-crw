@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Fast-path notify from WireGuard PostUp/PostDown hooks.
+set -euo pipefail
+
+ACTION="${1:-}"
+case "${ACTION}" in
+  up)
+    logger -t wg-failover "WireGuard PostUp — requesting immediate tunnel-up evaluation"
+  ;;
+  down)
+    logger -t wg-failover "WireGuard PreDown — requesting immediate tunnel-down evaluation"
+  ;;
+  *)
+    echo "Usage: $0 {up|down}" >&2
+    exit 1
+  ;;
+esac
+
+systemctl kill -s HUP wg-failover.service 2>/dev/null || systemctl restart wg-failover.service

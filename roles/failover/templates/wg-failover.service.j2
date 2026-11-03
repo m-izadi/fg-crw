@@ -1,0 +1,17 @@
+[Unit]
+Description=WireGuard tunnel failover controller (fg-crw scheduler)
+After=network-online.target docker.service wg-quick@{{ wg_interface }}.service
+Wants=network-online.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+EnvironmentFile=-{{ scheduler_dir }}/scheduler.env
+ExecStart={{ failover_controller_bin }}
+Restart=always
+RestartSec=10
+KillMode=mixed
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

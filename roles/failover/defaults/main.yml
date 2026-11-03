@@ -1,0 +1,20 @@
+---
+scheduler_dir: "{{ app_deploy_dir }}/scheduler"
+scheduler_venv_dir: "{{ scheduler_dir }}/.venv"
+scheduler_scripts:
+  - main_post
+  - main_story
+
+wg_interface: wg1
+wg_peer_check_ip: "{{ zabbix_server_ip | default('172.20.1.1') }}"
+wg_handshake_max_age_seconds: 120
+wg_failover_check_interval: 15
+wg_failover_fail_threshold: 3
+wg_failover_success_threshold: 2
+
+scheduler_api_url: "http://127.0.0.1:{{ app_api_port }}"
+scheduler_kafka_bootstrap: "127.0.0.1:{{ app_kafka_host_port }}"
+scheduler_mongo_uri: "mongodb://127.0.0.1:27017"
+
+failover_controller_bin: /usr/local/bin/wg-failover-controller
+failover_notify_bin: /usr/local/bin/wg-failover-notify
