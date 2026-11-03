@@ -43,3 +43,4 @@ app_compose_pull: false
 ############ Failover scheduler (WireGuard)
 wg_failover_enabled: true
 scheduler_dir: "{{ app_deploy_dir }}/scheduler"
+

@@ -133,5 +133,6 @@ docker compose ps
 | Kafka وصل نمی‌شود | `127.0.0.1:9093` — listener مخصوص host |
 | API در failover | `curl http://127.0.0.1:8000` |
 | Mongo | `mongosh mongodb://127.0.0.1:27017` روی هاست |
+| `wg-quick` با `PostUp`/`Configuration parsing error` | هوک‌ها باید زیر `[Interface]` باشند نه بعد از `[Peer]` — دوباره `--tags failover` بزنید |
 
 </div>

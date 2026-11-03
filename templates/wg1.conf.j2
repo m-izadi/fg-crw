@@ -5,6 +5,12 @@ PrivateKey = {{ wg_interface_private_key }}
 DNS = {{ interface_dns }}
 {% endif %}
 ListenPort = {{ wg_interface_listen_port }}
+{% if wg_failover_enabled | default(false) %}
+# BEGIN ANSIBLE WG-FAILOVER HOOKS
+PostUp = {{ failover_notify_bin | default('/usr/local/bin/wg-failover-notify') }} up
+PreDown = {{ failover_notify_bin | default('/usr/local/bin/wg-failover-notify') }} down
+# END ANSIBLE WG-FAILOVER HOOKS
+{% endif %}
 
 [Peer]
 Endpoint = {{ wg_peer_endpoint }}

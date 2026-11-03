@@ -88,10 +88,18 @@
     enabled: true
   loop: "{{ scheduler_scripts }}"
 
-- name: Configure WireGuard hooks for failover notify
+# PostUp/PreDown must live under [Interface]; after [Peer] breaks wg-quick.
+- name: Remove misplaced WireGuard failover hooks (legacy end-of-file block)
   ansible.builtin.blockinfile:
     path: /etc/wireguard/{{ wg_interface }}.conf
     marker: "# {mark} ANSIBLE WG-FAILOVER HOOKS"
+    state: absent
+
+- name: Configure WireGuard hooks for failover notify under [Interface]
+  ansible.builtin.blockinfile:
+    path: /etc/wireguard/{{ wg_interface }}.conf
+    marker: "# {mark} ANSIBLE WG-FAILOVER HOOKS"
+    insertbefore: '^\[Peer\]'
     block: |
       PostUp = {{ failover_notify_bin }} up
       PreDown = {{ failover_notify_bin }} down
