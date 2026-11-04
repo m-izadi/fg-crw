@@ -46,17 +46,22 @@
 <div dir="ltr">
 
 ```env
-API_URL=http://127.0.0.1:8000
-KAFKA_BOOTSTRAP_SERVERS=127.0.0.1:9093
-MONGO_URI=mongodb://127.0.0.1:27017
-SESSION_MANAGER_URL=http://127.0.0.1:8001
+CONFIG_SCHEDULER_MONGODB_HOST=127.0.0.1
+CONFIG_SCHEDULER_MONGODB_PORT=27017
+CONFIG_SCHEDULER_MONGODB_TABLE_NAME=instagram
+CONFIG_SCHEDULER_MONGODB_COLLECTION_NAME=source
+CONFIG_SCHEDULER_FETCHER_API_URL=http://127.0.0.1:8000/api/v1
+CONFIG_SCHEDULER_BOOTSTRAP_SERVERS=127.0.0.1:9093
 ```
 
 </div>
 
 <div dir="rtl">
 
-اگر کدهای پایتون نام متغیر دیگری می‌خوانند، در `inventory/host_vars/fg-crw-01.yml` یا `roles/failover/defaults/main.yml` تنظیم کنید.
+نام متغیرها باید با `scheduler/config/config.py` یکی باشد (`CONFIG_SCHEDULER_*`).  
+مقادیر پیش‌فرض در `roles/failover/defaults/main.yml` است؛ در `inventory/host_vars/fg-crw-01.yml` قابل override هستند.
+
+**نکته:** `MongoClient(f"{HOST}:{PORT}")` است — پس `HOST` باید فقط IP/hostname باشد (مثلاً `127.0.0.1`)، نه `mongodb://...`.
 
 </div>
 

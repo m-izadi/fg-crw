@@ -21,7 +21,10 @@ services:
       zookeeper:
         condition: service_healthy
     ports:
+      # Primary host listener (metadata / tools)
       - "127.0.0.1:{{ app_kafka_host_port }}:{{ app_kafka_host_port }}"
+      # Scheduler KafkaService() defaults to localhost:9092
+      - "127.0.0.1:9092:{{ app_kafka_host_port }}"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181

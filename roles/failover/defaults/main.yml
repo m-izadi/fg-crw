@@ -12,9 +12,20 @@ wg_failover_check_interval: 15
 wg_failover_fail_threshold: 3
 wg_failover_success_threshold: 2
 
-scheduler_api_url: "http://127.0.0.1:{{ app_api_port }}"
+# Must match scheduler/config/config.py env names (CONFIG_SCHEDULER_*).
+scheduler_timezone: Asia/Tehran
+scheduler_mongodb_host: "127.0.0.1"
+scheduler_mongodb_port: 27017
+scheduler_mongodb_user: ""
+scheduler_mongodb_password: ""
+scheduler_mongodb_table: instagram
+scheduler_mongodb_collection: source
+scheduler_fetcher_api_url: "http://127.0.0.1:{{ app_api_port }}/api/v1"
+scheduler_automation_api_url: ""
 scheduler_kafka_bootstrap: "127.0.0.1:{{ app_kafka_host_port }}"
-scheduler_mongo_uri: "mongodb://127.0.0.1:27017"
+
+# KafkaService() in scheduler defaults to localhost:9092 — publish that on host too.
+scheduler_kafka_host_bootstrap_port: 9092
 
 failover_controller_bin: /usr/local/bin/wg-failover-controller
 failover_notify_bin: /usr/local/bin/wg-failover-notify
