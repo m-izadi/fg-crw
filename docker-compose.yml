@@ -1,4 +1,4 @@
-# Local / manual use: copy .env.example to .env and set BIND_ADDRESS.
+# Local / manual use: copy .env.example to .env and set BIND_ADDRESS / IMAGE_TAG.
 # Production deploy is managed by Ansible (roles/app).
 
 services:
@@ -41,6 +41,7 @@ services:
       start_period: 90s
 
   session-manager:
+    image: fg-ins-crw-session-manager:${IMAGE_TAG:-1.1.0}
     build: ./session_manager
     container_name: session-manager
     restart: unless-stopped
@@ -62,6 +63,7 @@ services:
       start_period: 40s
 
   api:
+    image: fg-ins-crw-api:${IMAGE_TAG:-1.1.0}
     build: ./api
     container_name: api
     restart: unless-stopped

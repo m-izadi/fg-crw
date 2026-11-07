@@ -9,3 +9,11 @@ app_healthcheck_interval: 30s
 app_healthcheck_timeout: 10s
 app_healthcheck_retries: 3
 app_healthcheck_start_period: 40s
+
+# Bump app_image_tag on each release so compose builds/runs a new image name.
+app_image_tag: "1.1.0"
+app_image_prefix: fg-ins-crw
+app_api_image: "{{ app_image_prefix }}-api:{{ app_image_tag }}"
+app_session_manager_image: "{{ app_image_prefix }}-session-manager:{{ app_image_tag }}"
+app_build_no_cache: false
+app_compose_pull: false

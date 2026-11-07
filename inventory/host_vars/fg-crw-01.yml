@@ -40,6 +40,11 @@ app_deploy_dir: /srv/docker-compose/fg-ins-crw
 app_mongo_uri: mongodb://host.docker.internal:27017
 app_compose_pull: false
 
+# Bump this on every app release (forces new image names).
+app_image_tag: "1.1.0"
+# app_build_no_cache: true   # uncomment for a full rebuild without Docker cache
+
+
 ############ Failover scheduler (WireGuard)
 wg_failover_enabled: true
 scheduler_dir: "{{ app_deploy_dir }}/scheduler"

@@ -62,14 +62,32 @@
   changed_when: true
   tags: [app, app-build]
 
-- name: Build and start application stack
+- name: Build application images with version tag
   ansible.builtin.command:
-    cmd: docker compose up -d --build --remove-orphans
+    cmd: >-
+      docker compose build
+      {% if app_build_no_cache | bool %}--no-cache{% endif %}
+      api session-manager
+    chdir: "{{ app_deploy_dir }}"
+  register: app_compose_build
+  changed_when: true
+  tags: [app, app-build]
+
+- name: Start application stack on versioned images
+  ansible.builtin.command:
+    cmd: docker compose up -d --remove-orphans --force-recreate api session-manager
     chdir: "{{ app_deploy_dir }}"
   register: app_compose_up
   changed_when: >
-    'Built' in app_compose_up.stdout or
     'Started' in app_compose_up.stdout or
     'Recreated' in app_compose_up.stdout or
-    'Creating' in app_compose_up.stdout
+    'Creating' in app_compose_up.stdout or
+    app_compose_up.rc == 0
+  tags: [app, app-build]
+
+- name: Ensure infra containers are running
+  ansible.builtin.command:
+    cmd: docker compose up -d --remove-orphans zookeeper kafka
+    chdir: "{{ app_deploy_dir }}"
+  changed_when: false
   tags: [app, app-build]

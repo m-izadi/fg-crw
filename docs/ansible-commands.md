@@ -74,6 +74,29 @@ ansible-playbook fg-crw.yml --limit fg-crw-01 --tags app-config
 ansible-playbook fg-crw.yml --limit fg-crw-01 --tags app-build
 ```
 
+### انتشار نسخه جدید image
+1. کد روی سرور را آپدیت کنید (`/srv/docker-compose/fg-ins-crw/api` و `session_manager`)
+2. در `inventory/host_vars/fg-crw-01.yml` مقدار `app_image_tag` را بالا ببرید (مثلاً `1.1.0` → `1.2.0`)
+3. اجرا کنید:
+
+```bash
+ansible-playbook fg-crw.yml --limit fg-crw-01 --tags "app-config,app-build"
+```
+
+اگر Docker از cache قدیمی استفاده کرد:
+
+```bash
+ansible-playbook fg-crw.yml --limit fg-crw-01 --tags "app-config,app-build" \
+  -e app_build_no_cache=true
+```
+
+بررسی تگ‌ها روی سرور:
+
+```bash
+docker images | grep fg-ins-crw
+docker compose -f /srv/docker-compose/fg-ins-crw/docker-compose.yml ps
+```
+
 ### deploy اپلیکیشن (config + build)
 ```bash
 ansible-playbook fg-crw.yml --limit fg-crw-01 --tags "app-config,app-build"
