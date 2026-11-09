@@ -43,6 +43,7 @@ iptables-restore /etc/iptables/rules.v4
 | Zabbix Agent | TCP | `10050` | `172.20.1.1` | مانیتورینگ |
 | Loopback | — | — | `lo` | ترافیک داخلی سیستم |
 | Established | — | — | — | اتصال‌های باز (SSH فعال) |
+| MongoDB از Docker | TCP | `27017` | interfaceهای `docker0` / `br+` | کانتینر → Mongo روی هاست |
 
 **پیش‌فرض INPUT:** `DROP` — یعنی هر چیز دیگری رد می‌شود.
 

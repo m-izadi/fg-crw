@@ -48,7 +48,8 @@ services:
     ports:
       - "${BIND_ADDRESS:?set BIND_ADDRESS in .env}:8001:8001"
     environment:
-      MONGO_URI: ${MONGO_URI:-mongodb://host.docker.internal:27017}
+      MONGO_URI: ${MONGO_URI:-mongodb://172.17.0.1:27017}
+
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:

@@ -37,6 +37,9 @@
     {% if zabbix_server_ip is defined %}
     iptables -A INPUT -p tcp -s {{ zabbix_server_ip }}/32 --dport 10050 -j ACCEPT
     {% endif %}
+    # Containers → host MongoDB (docker0 / compose bridges). Not exposed on public IP.
+    iptables -A INPUT -i docker0 -p tcp --dport {{ mongo_host_port | default(27017) }} -j ACCEPT
+    iptables -A INPUT -i br+ -p tcp --dport {{ mongo_host_port | default(27017) }} -j ACCEPT
     iptables -P INPUT DROP
     iptables-save > /etc/iptables/rules.v4
   args:
